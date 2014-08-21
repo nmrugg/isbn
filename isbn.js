@@ -1,3 +1,5 @@
+"use strict";
+
 ///TODO: Make a seperate file that updates from the official XML.
 /// https://www.isbn-international.org/range_file_generation
 /// https://www.isbn-international.org/?q=download_range/15821/RangeMessage.xml
@@ -25,15 +27,24 @@ var ranges = {
         "979": {}
     },
     svg_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2in\" height=\"1.2in\" version=\"1.1\"><g id=\"isbn\"><rect width=\"2in\" height=\"1.2in\" x=\"0\" y=\"0\" style=\"fill:#FFFFFF;fill-opacity:1;stroke:none\"/>",
-    svg_foot = "</g></svg>"
+    svg_foot = "</g></svg>",
     svg_bars_head = "<g id=\"bars\" style=\"fill:#000000;fill-opacity:1;stroke:none\">",
     svg_bars_foot = "</g>",
+    svg_nums_head = "<g id=\"nums\" style=\"font-family:Liberation Mono;font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
+    svg_nums_foot = "</g>",
     ean_13_structure = ["LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL"],
+    ean_13_structure2 = "RRRRRR",
     codes = {
         L: ["0001101", "0011001", "0010011", "0111101", "0100011", "0110001", "0101111", "0111011", "0110111", "0001011"],
+        R: ["1110010", "1100110", "1101100", "1000010", "1011100", "1001110", "1010000", "1000100", "1001000", "1110100"],
+        G: ["0100111", "0110011", "0011011", "0100001", "0011101", "0111001", "0000101", "0010001", "0001001", "0010111"]
+    },
+    code_bars = {
+        L: [],
         R: [],
-        G: [],
-    };
+        G: []
+    },
+    generate_barcode;
 
 function clean_isbn(isbn)
 {
@@ -167,45 +178,136 @@ function hyphenate(isbn)
     }
 }
 
-function generate_barcode(isbn, force)
+generate_barcode = (function ()
 {
-    isbn = clean_isbn(isbn);
+    var start_x = 360,
+        y = "0.14in",
+        w = 12,
+        long_h = "0.9in",
+        short_h = "0.84in";
     
-    if (isbn.length === 10) {
-        if (!force && !check_10(isbn)) {
-            return new Error("Invalid ISBN");
-        }
-        ///NOTE: We just create 13 barcodes.
-        isbn = convert(isbn);
-    } else if (isbn.length === 13) {
-        if (!force && !check_13(isbn)) {
-            return new Error("Invalid ISBN");
-        }
-    } else {
-        return new Error("Invalid ISBN");
+    function format_num(num)
+    {
+        return (num / 1000) + "in";
     }
     
-}
-
-(function calculate_codes()
-{
-    var i;
-    
-    codes.L.forEach(function oneach(L)
+    function get_marker(x)
     {
-        var R = "",
-            G = "",
-            d;
-            
+        return "<rect width=\"" + format_num(w) + "\" height=\"" + long_h + "\" x=\"" + format_num(x * w + start_x) + "\" y=\"" + y + "\"/>" +
+               "<rect width=\"" + format_num(w) + "\" height=\"" + long_h + "\" x=\"" + format_num((x + 2) * w + start_x) + "\" y=\"" + y + "\"/>";
+    }
+    
+    function determine_bars(col, digit)
+    {
+        var bars = [],
+            code = codes[col][digit],
+            i,
+            which = 0;
+        
         for (i = 0; i < 7; i += 1) {
-            d = L[i] === "0" ? "1" : "0";
-            R += d;
-            G = d + G;
+            if (code[i] === "1") {
+                /// Did it find a new line?
+                if (!bars[which]) {
+                    bars[which] = {offset: i, len: 1};
+                } else {
+                    bars[which].len += 1;
+                }
+            } else {
+                /// Is it at the end of a line?
+                if (bars[which]) {
+                    which += 1;
+                    /// Did it find both?
+                    if (which > 1) {
+                        break;
+                    }
+                }
+            }
         }
-        codes.R.push(R);
-        codes.G.push(G);
-    });
+        
+        /// Cache results.
+        code_bars[col][digit] = bars;
+        
+        return bars;
+    }
+    
+    function get_bars(col, digit, offset)
+    {
+        var bars = code_bars[col][digit] || determine_bars(col, digit),
+            svg = "";
+        
+        bars.forEach(function oneach(bar)
+        {
+            svg += "<rect width=\"" + format_num(w * bar.len) + "\" height=\"" + short_h + "\" x=\"" + format_num((offset + bar.offset) * w + start_x) + "\" y=\"" + y + "\"/>";;
+        });
+        
+        return svg;
+    }
+    
+    function generate_bars(isbn)
+    {
+        var bars = get_marker(0), /// Create start marker
+            i,
+            structure = ean_13_structure[Number(isbn[0])] + ean_13_structure2,
+            offset = 3; ///NOTE: The start marker is 3 width.
+        
+        ///NOTE: The first digit is skipped because it changes the structure.
+        for (i = 1; i < 13; i += 1) {
+            bars += get_bars(structure[i - 1], isbn[i], offset);
+            offset += 7; ///NOTE: Each set of bars take up 7 places.
+            if (i === 6) {
+                bars += get_marker(offset + 1);
+                offset += 5;
+            }
+        }
+        
+        /// Create end marker
+        bars += get_marker(offset);
+        
+        return bars;
+    }
+    
+    function generate_nums(isbn)
+    {
+        var y = "y=\"1.09in\"";
+        
+        return "<text><tspan x=\"0.31in\" "  + y + ">" + isbn[0] + "</tspan></text>" +
+               "<text><tspan x=\"0.655in\" " + y + ">" + isbn.substr(1, 6) + "</tspan></text>" +
+               "<text><tspan x=\"1.21in\" " + y + ">" + isbn.substr(7, 6) + "</tspan></text>" +
+               "<text><tspan x=\"1.56in\" "  + y + ">" + "&gt;" + "</tspan></text>";
+    }
+    
+    return function generate_barcode(isbn, force)
+    {
+        var svg = "",
+            mono_isbn;
+        
+        isbn = clean_isbn(isbn);
+        
+        if (isbn.length === 10) {
+            if (!force && !check_10(isbn)) {
+                return new Error("Invalid ISBN");
+            }
+            ///NOTE: We just create 13 barcodes.
+            isbn = convert(isbn);
+        } else if (isbn.length === 13) {
+            if (!force && !check_13(isbn)) {
+                return new Error("Invalid ISBN");
+            }
+        } else {
+            return new Error("Invalid ISBN");
+        }
+        
+        mono_isbn = isbn.replace(/0/g, "O"); /// O's look better than zeros.
+        
+        svg += svg_bars_head + generate_bars(isbn) + svg_bars_foot;
+        
+        svg += svg_nums_head + generate_nums(mono_isbn) + svg_nums_foot;
+        
+        return svg_head + svg + svg_foot;
+    }
 }());
+
+console.log(generate_barcode("978-1500901622"));
 
 /*
 console.log(check_13("978-1500901622"));
