@@ -2,28 +2,38 @@
 /// https://www.isbn-international.org/range_file_generation
 /// https://www.isbn-international.org/?q=download_range/15821/RangeMessage.xml
 var ranges = {
-    "978": {
-        "0": [ /// English speaking
-            {s: "00", e: "19"},
-            {s: "200", e: "699"},
-            {s: "7000", e: "8499"},
-            {s: "85000", e: "89999"},
-            {s: "900000", e: "949999"},
-            {s: "9500000", e: "9999999"},
-        ],
-        "1": [ /// English speaking
-            {s: "00", e: "09"},
-            {s: "100", e: "327"},
-            {s: "328", e: "329"},
-            {s: "330", e: "399"},
-            {s: "4000", e: "5499"},
-            {s: "55000", e: "86979"},
-            {s: "869800", e: "998999"},
-            {s: "9990000", e: "9999999"},
-        ],
+        "978": {
+            "0": [ /// English speaking
+                {s: "00", e: "19"},
+                {s: "200", e: "699"},
+                {s: "7000", e: "8499"},
+                {s: "85000", e: "89999"},
+                {s: "900000", e: "949999"},
+                {s: "9500000", e: "9999999"},
+            ],
+            "1": [ /// English speaking
+                {s: "00", e: "09"},
+                {s: "100", e: "327"},
+                {s: "328", e: "329"},
+                {s: "330", e: "399"},
+                {s: "4000", e: "5499"},
+                {s: "55000", e: "86979"},
+                {s: "869800", e: "998999"},
+                {s: "9990000", e: "9999999"},
+            ],
+        },
+        "979": {}
     },
-    "979": {}
-};
+    svg_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2in\" height=\"1.2in\" version=\"1.1\"><g id=\"isbn\"><rect width=\"2in\" height=\"1.2in\" x=\"0\" y=\"0\" style=\"fill:#FFFFFF;fill-opacity:1;stroke:none\"/>",
+    svg_foot = "</g></svg>"
+    svg_bars_head = "<g id=\"bars\" style=\"fill:#000000;fill-opacity:1;stroke:none\">",
+    svg_bars_foot = "</g>",
+    ean_13_structure = ["LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL"],
+    codes = {
+        L: ["0001101", "0011001", "0010011", "0111101", "0100011", "0110001", "0101111", "0111011", "0110111", "0001011"],
+        R: [],
+        G: [],
+    };
 
 function clean_isbn(isbn)
 {
@@ -68,6 +78,7 @@ function check_10(isbn)
         return false;
     }
     
+    ///NOTE: Since the checksum can be "X", we need to make sure it's a string.
     return String(calculate_check_10(isbn)) === isbn[9];
 }
 
@@ -81,6 +92,7 @@ function check_13(isbn)
     return calculate_check_13(isbn) === Number(isbn[12]);
 }
 
+/// Converts between 10 & 13 length formats.
 function convert(isbn)
 {
     isbn = clean_isbn(isbn);
@@ -154,6 +166,46 @@ function hyphenate(isbn)
         return isbn;
     }
 }
+
+function generate_barcode(isbn, force)
+{
+    isbn = clean_isbn(isbn);
+    
+    if (isbn.length === 10) {
+        if (!force && !check_10(isbn)) {
+            return new Error("Invalid ISBN");
+        }
+        ///NOTE: We just create 13 barcodes.
+        isbn = convert(isbn);
+    } else if (isbn.length === 13) {
+        if (!force && !check_13(isbn)) {
+            return new Error("Invalid ISBN");
+        }
+    } else {
+        return new Error("Invalid ISBN");
+    }
+    
+}
+
+(function calculate_codes()
+{
+    var i;
+    
+    codes.L.forEach(function oneach(L)
+    {
+        var R = "",
+            G = "",
+            d;
+            
+        for (i = 0; i < 7; i += 1) {
+            d = L[i] === "0" ? "1" : "0";
+            R += d;
+            G = d + G;
+        }
+        codes.R.push(R);
+        codes.G.push(G);
+    });
+}());
 
 /*
 console.log(check_13("978-1500901622"));
