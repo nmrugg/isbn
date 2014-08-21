@@ -30,8 +30,10 @@ var ranges = {
     svg_foot = "</g></svg>",
     svg_bars_head = "<g id=\"bars\" style=\"fill:#000000;fill-opacity:1;stroke:none\">",
     svg_bars_foot = "</g>",
-    svg_nums_head = "<g id=\"nums\" style=\"font-family:Liberation Mono;font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
+    svg_nums_head = "<g id=\"nums\" style=\"font-family:Liberation Mono, Droid Sans Mono, Monospace, mono;font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
     svg_nums_foot = "</g>",
+    svg_text_head = "<g id=\"text\" style=\"font-family:Liberation Mono, Droid Sans Mono, Monospace, mono;font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
+    svg_text_foot = "</g>",
     ean_13_structure = ["LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL"],
     ean_13_structure2 = "RRRRRR",
     codes = {
@@ -110,7 +112,11 @@ function convert(isbn)
     if (isbn.length === 10) {
         return "978" + isbn.substr(0, 9) + calculate_check_13("978" + isbn);
     } else if (isbn.length === 13) {
-        return isbn.substr(3, 9) + calculate_check_10(isbn.substr(3, 9));
+        if (isbn.substr(0, 3) === "978") {
+            return isbn.substr(3, 9) + calculate_check_10(isbn.substr(3, 9));
+        } else {
+            return isbn; /// Unconvertable
+        }
     }
 }
 
@@ -180,8 +186,8 @@ function hyphenate(isbn)
 
 generate_barcode = (function ()
 {
-    var start_x = 360,
-        y = "0.14in",
+    var start_x = 430,
+        y = "0.17in",
         w = 12,
         long_h = "0.9in",
         short_h = "0.84in";
@@ -268,18 +274,34 @@ generate_barcode = (function ()
     
     function generate_nums(isbn)
     {
-        var y = "y=\"1.09in\"";
+        var y = "y=\"1.12in\"";
         
-        return "<text><tspan x=\"0.31in\" "  + y + ">" + isbn[0] + "</tspan></text>" +
-               "<text><tspan x=\"0.655in\" " + y + ">" + isbn.substr(1, 6) + "</tspan></text>" +
-               "<text><tspan x=\"1.21in\" " + y + ">" + isbn.substr(7, 6) + "</tspan></text>" +
-               "<text><tspan x=\"1.56in\" "  + y + ">" + "&gt;" + "</tspan></text>";
+        isbn = make_mono(isbn);
+        
+        return "<text><tspan x=\"0.38in\" " + y + ">" + isbn[0] + "</tspan></text>" +
+               "<text><tspan x=\"0.725in\" " + y + ">" + isbn.substr(1, 6) + "</tspan></text>" +
+               "<text><tspan x=\"1.28in\" " + y + ">" + isbn.substr(7, 6) + "</tspan></text>" +
+               "<text><tspan x=\"1.63in\" "  + y + ">" + "&gt;" + "</tspan></text>";
+    }
+    
+    function generate_text(isbn)
+    {
+        var y = "y=\"0.13in\"";
+        
+        ///NOTE: N-dashes look better than hyphens.
+        isbn = make_mono(hyphenate(convert(isbn))).replace(/-/g, "–");
+        
+        return "<text><tspan x=\"1in\" " + y + ">ISBN " + isbn + "</tspan></text>";
+    }
+    
+    function make_mono(isbn)
+    {
+        return isbn.replace(/0/g, "O"); /// O's look better than zeros.
     }
     
     return function generate_barcode(isbn, force)
     {
-        var svg = "",
-            mono_isbn;
+        var svg = "";
         
         isbn = clean_isbn(isbn);
         
@@ -297,11 +319,11 @@ generate_barcode = (function ()
             return new Error("Invalid ISBN");
         }
         
-        mono_isbn = isbn.replace(/0/g, "O"); /// O's look better than zeros.
-        
         svg += svg_bars_head + generate_bars(isbn) + svg_bars_foot;
         
-        svg += svg_nums_head + generate_nums(mono_isbn) + svg_nums_foot;
+        svg += svg_nums_head + generate_nums(isbn) + svg_nums_foot;
+        
+        svg += svg_text_head + generate_text(isbn) + svg_text_foot;
         
         return svg_head + svg + svg_foot;
     }
