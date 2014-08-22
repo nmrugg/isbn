@@ -1,0 +1,24 @@
+{
+  "name": "isbn_toolbelt",
+  "description": "ISBN toolbelt",
+  "version": "0.0.1",
+  "author": {
+    "name": "Nathan Rugg",
+    "email": "nmrugg@gmail.com"
+  },
+  "keywords": [
+    "isbn",
+    "isbn generator",
+    "isbn validator",
+    "upc",
+    "ean"
+  ],
+  "main": "isbn.js",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://nate.mit-license.org/"
+    }
+  ],
+  "readmeFilename": "readme.md"
+}

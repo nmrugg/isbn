@@ -1,3 +1,5 @@
+// jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true, onevar:true, strict:true, undef:true, unused:strict, curly:true, node:true, evil:true
+
 "use strict";
 
 ///TODO: Make a seperate file that updates from the official XML.
@@ -30,9 +32,9 @@ var ranges = {
     svg_foot = "</g></svg>",
     svg_bars_head = "<g id=\"bars\" style=\"fill:#000000;fill-opacity:1;stroke:none\">",
     svg_bars_foot = "</g>",
-    svg_nums_head = "<g id=\"nums\" style=\"font-family:Liberation Mono, Droid Sans Mono, Monospace, mono;font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
+    svg_nums_head = "<g id=\"nums\" style=\"font-family:Liberation Mono, Droid Sans Mono, Monospace, mono;font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
     svg_nums_foot = "</g>",
-    svg_text_head = "<g id=\"text\" style=\"font-family:Liberation Mono, Droid Sans Mono, Monospace, mono;font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
+    svg_text_head = "<g id=\"text\" style=\"font-family:Liberation Mono, Droid Sans Mono, Monospace, mono;font-size:9px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none\">",
     svg_text_foot = "</g>",
     ean_13_structure = ["LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL"],
     ean_13_structure2 = "RRRRRR",
@@ -184,6 +186,11 @@ function hyphenate(isbn)
     }
 }
 
+function validate(isbn)
+{
+    return check_10(isbn) || check_13(isbn);
+}
+
 generate_barcode = (function ()
 {
     var start_x = 430,
@@ -288,6 +295,7 @@ generate_barcode = (function ()
     {
         var y = "y=\"0.13in\"";
         
+        ///NOTE: ISBN 10 is commonly used above.
         ///NOTE: N-dashes look better than hyphens.
         isbn = make_mono(hyphenate(convert(isbn))).replace(/-/g, "–");
         
@@ -329,22 +337,11 @@ generate_barcode = (function ()
     }
 }());
 
-console.log(generate_barcode("978-1500901622"));
-
-/*
-console.log(check_13("978-1500901622"));
-console.log(check_10("1500901628"));
-console.log(convert("978-1500901622") === "1500901628");
-console.log(convert("1500901628") === "9781500901622");
-console.log(convert(convert("1500901628")) === "1500901628");
-console.log(check_10("85-359-0277-5"));
-console.log(check_10("0-8044-2957-x"));
-console.log(convert("0-8044-2957-X") === "9780804429573");
-console.log(convert(convert("0-8044-29 57x")) === "080442957X");
-console.log(hyphenate("978-1500901622") === "978-1-5009-0162-2");
-console.log(hyphenate(convert("978-1500901622")) === "1-5009-0162-8");
-console.log(hyphenate(convert("0943396042")) === "978-0-943396-04-0");
-console.log(hyphenate("0-943396-04-2") === "0-943396-04-2");
-console.log(hyphenate("09752298-0 x") === "0-9752298-0-X");
-console.log(hyphenate("0684843285") === "0-684-84328-5");
-*/
+module.exports = {
+    check_10: check_10,
+    check_13: check_13,
+    convert: convert,
+    generate_barcode: generate_barcode,
+    hyphenate: hyphenate,
+    validate: validate,
+};
