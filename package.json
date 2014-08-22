@@ -20,5 +20,6 @@
       "url": "http://nate.mit-license.org/"
     }
   ],
-  "readmeFilename": "readme.md"
+  "readmeFilename": "readme.md",
+  "dependencies": {}
 }

@@ -108,12 +108,20 @@ function check_13(isbn)
 }
 
 /// Converts between 10 & 13 length formats.
-function convert(isbn)
+function convert(isbn, which)
 {
     isbn = clean_isbn(isbn);
     if (isbn.length === 10) {
+        /// If we really want the 10, just calculate the checksum.
+        if (which === 10) {
+            return isbn.substr(0, 9) + calculate_check_10(isbn);
+        }
         return "978" + isbn.substr(0, 9) + calculate_check_13("978" + isbn);
     } else if (isbn.length === 13) {
+        /// If we really want the 13, just calculate the checksum.
+        if (which === 13) {
+            return isbn.substr(0, 12) + calculate_check_13(isbn);
+        }
         if (isbn.substr(0, 3) === "978") {
             return isbn.substr(3, 9) + calculate_check_10(isbn.substr(3, 9));
         } else {
