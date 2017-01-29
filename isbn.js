@@ -345,41 +345,42 @@ generate_barcode = (function ()
     }
 }());
 
-module.exports = {
-    check_10: check_10,
-    check_13: check_13,
-    convert: convert,
-    generate_barcode: generate_barcode,
-    hyphenate: hyphenate,
-    validate: validate,
-};
+if (typeof module === "object") {
+    module.exports = {
+        check_10: check_10,
+        check_13: check_13,
+        convert: convert,
+        generate_barcode: generate_barcode,
+        hyphenate: hyphenate,
+        validate: validate,
+    };
 
-
-/// Was this called directly?
-if (require.main === module) {
-    if (process.argv[2] === "convert") {
-        console.log(hyphenate(convert(process.argv[3])));
-    } else if (process.argv[2] === "svg" || process.argv[2] === "gen" || process.argv[2] === "generate" || process.argv[2] === "barcode") {
-        console.log(generate_barcode(process.argv[3]));
-    } else if (process.argv[2] === "check" || process.argv[2] === "validate") {
-        console.log(validate(process.argv[3]));
-    } else if (validate(process.argv[2])) {
-        console.log("ISBN 10: " + hyphenate(convert(process.argv[2], 10)));
-        console.log("ISBN 13: " + hyphenate(convert(process.argv[2], 13)));
-    } else {
-        if (process.argv[2]) {
-            console.log("Invalid command or ISBN!");
+    /// Was this called directly?
+    if (typeof require === "function" && require.main === module) {
+        if (process.argv[2] === "convert") {
+            console.log(hyphenate(convert(process.argv[3])));
+        } else if (process.argv[2] === "svg" || process.argv[2] === "gen" || process.argv[2] === "generate" || process.argv[2] === "barcode") {
+            console.log(generate_barcode(process.argv[3]));
+        } else if (process.argv[2] === "check" || process.argv[2] === "validate") {
+            console.log(validate(process.argv[3]));
+        } else if (validate(process.argv[2])) {
+            console.log("ISBN 10: " + hyphenate(convert(process.argv[2], 10)));
+            console.log("ISBN 13: " + hyphenate(convert(process.argv[2], 13)));
+        } else {
+            if (process.argv[2]) {
+                console.log("Invalid command or ISBN!");
+            }
+            console.log("");
+            console.log("Usage: node isbn.js [COMMAND] ISBN");
+            console.log("");
+            console.log("Commands:");
+            console.log("  check     Check to see if an ISBN is valid");
+            console.log("  convert   Convert between 10 and 13 ISBN");
+            console.log("  generate  Generate an SVG barcode");
+            console.log("");
+            console.log("If COMMAND is ommited and an ISBN is present,");
+            console.log("it will display both the 10 and 13 length ISBNs.");
+            console.log("");
         }
-        console.log("");
-        console.log("Usage: node isbn.js [COMMAND] ISBN");
-        console.log("");
-        console.log("Commands:");
-        console.log("  check     Check to see if an ISBN is valid");
-        console.log("  convert   Convert between 10 and 13 ISBN");
-        console.log("  generate  Generate an SVG barcode");
-        console.log("");
-        console.log("If COMMAND is ommited and an ISBN is present,");
-        console.log("it will display both the 10 and 13 length ISBNs.");
-        console.log("");
     }
 }
