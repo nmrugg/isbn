@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>ISBN Toolbelt</title>
+    <meta content="">
+    <style>
+    #svgOutput {
+      display: block;
+      width: 400px;
+      height: 200px;
+    }
+    #saveButton {
+      display: block;
+      width: 115px;
+      height: 25px;
+      background: #3086b9;
+      text-align: center;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      margin: 10px;
+      padding: 10px 10px 5px 10px;
+      display: inline-block;
+      border-radius: 4px;
+      text-decoration: none;
+      font-family: arial;
+    }
+    div {
+      padding: 2px;
+    }
+    </style>
+    <script src=isbn.js></script>
+  </head>
+  <body>
+    <div>
+      <label>
+        ISBN: <input type=text id=isbn placeholder="10 or 13 digit ISBN">
+      </label>
+    </div>
+    <div>
+      <input type=button id=generate value=Generate>
+      <input type=button id=validate value=Validate>
+      <input type=button id=convert value="Convert" title="Convert to/from 10/13 ISBN format">
+    </div>
+    <div id=output></div>
+  </body>
+  <script>
+    var isbnEl = document.getElementById("isbn");
+    var outputEl = document.getElementById("output");
+    var genEl = document.getElementById("generate");
+    var valEl = document.getElementById("validate");
+    var conEl = document.getElementById("convert");
+    
+    function con()
+    {
+        if (!validate(isbnEl.value)) {
+            outputEl.textContent = "Invalid";
+        } else {
+            outputEl.textContent = hyphenate(convert(isbnEl.value));
+        }
+    }
+    
+    function val()
+    {
+        outputEl.textContent = validate(isbnEl.value) ? "Valid" : "Invalid";
+    }
+    
+    function gen()
+    {
+        var code;
+        var el;
+        if (!validate(isbnEl.value)) {
+            outputEl.textContent = "Invalid";
+        } else {
+            code = generate_barcode(isbnEl.value);
+            outputEl.innerHTML = code + "<br>";
+            
+            el = document.createElement("a");
+            el.id = "saveButton";
+            el.textContent = "Download";
+            el.href= "data:image/svg+xml;utf8," + code;
+            el.download = isbnEl.value + ".svg";
+            outputEl.appendChild(el);
+            
+            el = document.createElement("div");
+            el.textContent = "SVG text:"
+            outputEl.appendChild(el);
+            
+            el = document.createElement("textarea");
+            el.id = "svgOutput";
+            el.value = code;
+            outputEl.appendChild(el);
+        }
+    }
+    
+    conEl.onclick = con;
+    valEl.onclick = val;
+    genEl.onclick = gen;
+  </script>
+</html>
