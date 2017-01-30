@@ -23,7 +23,7 @@ if (process.argv[2] === "convert") {
     console.log("  convert   Convert between 10 and 13 ISBN");
     console.log("  generate  Generate an SVG barcode");
     console.log("");
-    console.log("If COMMAND is ommited and an ISBN is present,");
+    console.log("If COMMAND is omitted and an ISBN is present,");
     console.log("it will display both the 10 and 13 length ISBNs.");
     console.log("");
 }
