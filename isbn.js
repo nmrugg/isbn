@@ -1,5 +1,8 @@
 // jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true, onevar:true, strict:true, undef:true, unused:strict, curly:true, node:true, evil:true
 
+/// Nathan Rugg (c) 2017
+/// License: MIT (nate.mit-license.org)
+
 "use strict";
 
 ///TODO: Make a seperate file that updates from the official XML.
