@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // jshint forin:true, noarg:true, noempty:true, eqeqeq:true, bitwise:true, onevar:true, strict:true, undef:true, unused:strict, curly:true, node:true, evil:true
 
 /// Nathan Rugg (c) 2017
@@ -374,7 +376,7 @@ if (typeof module === "object") {
                 console.log("Invalid command or ISBN!");
             }
             console.log("");
-            console.log("Usage: node isbn.js [COMMAND] ISBN");
+            console.log("Usage: isbn.js [COMMAND] ISBN");
             console.log("");
             console.log("Commands:");
             console.log("  check     Check to see if an ISBN is valid");
