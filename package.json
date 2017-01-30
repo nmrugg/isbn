@@ -15,7 +15,9 @@
     "isbn generator",
     "isbn validator",
     "upc",
-    "ean"
+    "ean",
+    "barcode",
+    "barcode generator"
   ],
   "main": "isbn.js",
   "bin": {
