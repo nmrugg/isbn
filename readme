@@ -15,3 +15,5 @@ Commands:
 
 If COMMAND is ommited and an ISBN is present,
 it will display both the 10 and 13 length ISBNs.
+
+Demo: https://nmrugg.github.io/isbn/demo.html
