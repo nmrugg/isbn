@@ -51,6 +51,39 @@
     var genEl = document.getElementById("generate");
     var valEl = document.getElementById("validate");
     var conEl = document.getElementById("convert");
+    var params = getParams();
+    
+    function getParams()
+    {
+        var sep1 = location.search.split(/\&|\?/g),
+            sep2,
+            params = {},
+            i,
+            len;
+        
+        len = sep1.length;
+        
+        if (len > 1) {
+            ///NOTE: Skip the first empty element (it's empty because URL's start with a slash).
+            for (i = 1; i < len; i += 1) {
+                sep2 = sep1[i].split(/=/);
+                sep2[0] = decodeURIComponent(sep2[0]);
+                if (sep2[1]) {
+                    sep2[1] = decodeURIComponent(sep2[1]);
+                }
+                if (typeof params[sep2[0]] === "undefined") {
+                    params[sep2[0]] = sep2[1];
+                } else {
+                    if (typeof params[sep2[0]] !== "object") {
+                        params[sep2[0]] = [params[sep2[0]]];
+                    }
+                    params[sep2[0]].push(sep2[1]);
+                }
+            }
+        }
+        
+        return params;
+    }
     
     function con()
     {
@@ -97,5 +130,18 @@
     conEl.onclick = con;
     valEl.onclick = val;
     genEl.onclick = gen;
+    
+    if (params.isbn) {
+        isbnEl.value = params.isbn;
+    }
+    
+    if (params.action === "convert") {
+        con();
+    } else if (params.action === "validate") {
+        val();
+    } else if (params.action === "generate" || !params.action) {
+        gen();
+    }
+    
   </script>
 </html>
