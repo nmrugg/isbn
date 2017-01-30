@@ -139,7 +139,7 @@
         con();
     } else if (params.action === "validate") {
         val();
-    } else if (params.action === "generate" || !params.action) {
+    } else if (params.action === "generate" || !params.action && params.isbn) {
         gen();
     }
     
