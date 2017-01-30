@@ -1,0 +1,13 @@
+Insall:
+
+npm install -g isbn_toolbelt
+
+Usage: isbn.js [COMMAND] ISBN
+
+Commands:
+  check     Check to see if an ISBN is valid
+  convert   Convert between 10 and 13 ISBN
+  generate  Generate an SVG barcode
+
+If COMMAND is ommited and an ISBN is present,
+it will display both the 10 and 13 length ISBNs.
