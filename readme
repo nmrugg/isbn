@@ -1,3 +1,7 @@
+Description:
+
+A pure JavaScript ISBN toolbelt
+
 Insall:
 
 npm install -g isbn_toolbelt
